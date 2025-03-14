@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Info</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('farmbackground.png') no-repeat center center/cover;
+            height: 100vh;
+        }
+        .tree, .seed, .farmhouse, .bos, .tree-herft {
+            position: absolute;
+            cursor: pointer;
+        }
+        .tree { width: 200px; }
+        .seed { width: 100px; }
+        .farmhouse { width: 600px; }
+        .bos { width: 300px; }
+        .tree-herft { width: 150px; }
+        .info-box {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border: 1px solid black;
+            display: none;
+        }
+        .shopping-cart {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            cursor: pointer;
+        }
+        .shop-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: white;
+            border: 1px solid black;
+            padding: 20px;
+            width: 200px;
+            border-radius: 5px;
+        }
+        .stock-option {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid gray;
+        }
+        .stock-option:hover {
+            background: lightgray;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .card {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: 1px solid #388E3C;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Arial', sans-serif;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            background: #4CAF50;
+            border: 1px solid #388E3C;
+            width: 150px;
+            border-radius: 5px;
+        }
+        .dropdown a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: white;
+            border-bottom: 1px solid #388E3C;
+        }
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+        .dropdown a:hover {
+            background: #66BB6A;
+        }
+    </style>
+</head>
+<body>
+    <div class="card" onclick="toggleDropdown()">Warren Buffet</div>
+    <div id="dropdown" class="dropdown">
+        <a href="#">Account</a>
+        <a href="#">Notification</a>
+        <a href="#">Portfolio</a>
+        <a href="#">Logout</a>
+    </div>
+
+    <img src="shoppingicon.png" class="shopping-cart" onclick="toggleShopMenu()">
+    <div id="shopMenu" class="shop-menu">
+        <!-- Search Bar -->
+        <input type="text" id="searchBar" class="search-bar" placeholder="Search..." oninput="filterStocks()">
+        <!-- Stock Options -->
+        <div class="stock-option" onclick="selectStock('Colruyt')">Colruyt</div>
+        <div class="stock-option" onclick="selectStock('AB InBev')">AB InBev</div>
+        <div class="stock-option" onclick="selectStock('ASML Holding')">ASML Holding</div>
+        <div class="stock-option" onclick="selectStock('Shopify')">Shopify</div>
+    </div>
+
+    <img src="tree.png" class="tree" style="top: 20%; left: 50%;" onclick="showInfo(event, 'Colruyt Group', '+2.18%', 'Colruyt Group is a Belgian retailer, known for low-cost supermarkets. It is listed on Euronext Brussels (COLR) and offers stable financial performance.', '4')">
+    <img src="seed.png" class="seed" style="top: 65%; left: 25%;" onclick="showInfo(event, 'AB InBev','is a global beverage and brewing company, known for brands like Budweiser and Stella Artois. Listed on Euronext Brussels (ABI), it is one of the largest beer producers in the world. The stock is considered a solid investment with steady growth and dividends.', '2')">
+    <img src="tree_herfst.png" class="tree-herft" style="top: 40%; left: 60%;" onclick="showInfo(event, 'ASML Holding is a Dutch semiconductor equipment manufacturer, known for its advanced lithography machines. Listed on the Euronext Amsterdam (ASML), it is a key player in the global chip-making industry. The stock is considered a leader in technology with strong growth potential.', '1')">
+    <img src="bos.png" class="bos" style="top: 20%; left: 70%;" onclick="showInfo(event, 'Shopify', '+6%', 'Shopify is a Canadian e-commerce platform that helps businesses set up online stores. Listed on the NYSE (SHOP), it has become a leader in the e-commerce space. The stock is known for its strong growth and innovation in online retail solutions.', '11')">
+    <img src="farmhouse.png" class="farmhouse" style="top: 5%; left: 10%;" onclick="navigateToLibrary()">
+
+    <div id="infoBox" class="info-box"></div>
+
+    <script>
+        let selectedStock = null;
+        let seedElement = null;
+        let placingSeed = false;
+
+        function toggleDropdown() {
+            let dropdown = document.getElementById('dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        document.addEventListener('click', function(event) {
+            let dropdown = document.getElementById('dropdown');
+            let card = document.querySelector('.card');
+            if (!card.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function toggleShopMenu() {
+            let menu = document.getElementById('shopMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectStock(stock) {
+            selectedStock = stock;
+            placingSeed = true;
+
+            // Create seed element when stock is selected
+            seedElement = document.createElement('img');
+            seedElement.src = 'seed.png';
+            seedElement.classList.add('seed');
+            seedElement.style.position = 'absolute';
+            seedElement.style.zIndex = 999;  // Ensure it appears on top of other elements.
+
+            // Wait until the image is fully loaded to get the correct width and height
+            seedElement.onload = function() {
+                // Initially position seed at mouse location
+                document.addEventListener('mousemove', followMouse);
+                document.addEventListener('click', toggleSeedFollow);
+            };
+
+            // Ensure the seed element is added to the DOM only after it's loaded
+            if (!document.body.contains(seedElement)) {
+                document.body.appendChild(seedElement);
+            }
+        }
+
+        function followMouse(event) {
+            if (placingSeed && seedElement) {
+                // Get seed image dimensions after it is loaded
+                const seedWidth = seedElement.width;
+                const seedHeight = seedElement.height;
+
+                // Move seed to follow mouse position
+                seedElement.style.left = (event.clientX - seedWidth / 2) + 'px';
+                seedElement.style.top = (event.clientY - seedHeight / 2) + 'px';
+            }
+        }
+
+        function toggleSeedFollow(event) {
+            if (placingSeed && seedElement) {
+                if (seedElement.contains(event.target)) {
+                    // Stop following mouse if the seed itself is clicked
+                    placingSeed = false;
+                    document.removeEventListener('mousemove', followMouse);
+                    document.removeEventListener('click', toggleSeedFollow);
+                } else {
+                    // If clicked outside of the seed, place the seed
+                    placeSeed(event);
+                }
+            }
+        }
+
+        function placeSeed(event) {
+            if (placingSeed && seedElement) {
+                // Prevent the click event from being propagated (e.g., to parent elements)
+                event.preventDefault();
+
+                // Only place the seed if the click happens on an empty area
+                if (event.target.tagName !== 'IMG' && event.target !== seedElement) {
+                    // Position the seed where clicked
+                    seedElement.style.left = (event.clientX - seedElement.width / 2) + 'px';
+                    seedElement.style.top = (event.clientY - seedElement.height / 2) + 'px';
+
+                    // Append the seed to the body
+                    document.body.appendChild(seedElement);
+
+                    // Reset the state after placing the seed
+                    placingSeed = false;
+                    selectedStock = null;
+
+                    // Remove event listeners for the previous seed
+                    document.removeEventListener('mousemove', followMouse);
+                    document.removeEventListener('click', toggleSeedFollow);
+                }
+            }
+        }
+
+
+
+        function enableSeedPlacement() {
+            // Re-enable seed placement by setting placingSeed to true
+            placingSeed = true;
+            document.addEventListener('mousemove', followMouse);
+            document.addEventListener('click', placeSeed);
+        }
+
+    
+        function showInfo(event, name, percent, description, age) {
+            let infoBox = document.getElementById('infoBox');
+            infoBox.style.display = 'block';
+            infoBox.style.top = event.clientY + 'px';
+            infoBox.style.left = event.clientX + 'px';
+    
+            infoBox.innerHTML = `<strong>${name}</strong><br>Last day: ${percent}<br>${description}<br>Shares: ${age}<br><em>Fetching latest news...</em>`;
+    
+            fetch('http://127.0.0.1:5000/get_stock_news', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ stock_name: name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                infoBox.innerHTML = `<strong>${name}</strong><br>Last day: ${percent}<br>${description}<br>Shares: ${age}<br><strong>Latest News:</strong> ${data.news}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                infoBox.innerHTML += `<br><em>Failed to fetch news.</em>`;
+            });
+        }
+    
+        document.body.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('tree') && !event.target.classList.contains('seed') && !event.target.classList.contains('farmhouse') && !event.target.classList.contains('bos') && !event.target.classList.contains('tree-herft')) {
+                document.getElementById('infoBox').style.display = 'none';
+            }
+        });
+    
+        function navigateToLibrary() {
+            window.location.href = 'library.html';
+        }
+    
+        // Filter stock options based on search input
+        function filterStocks() {
+            let searchQuery = document.getElementById('searchBar').value.toLowerCase();
+            let stockOptions = document.querySelectorAll('.stock-option');
+    
+            stockOptions.forEach(option => {
+                let stockName = option.textContent.toLowerCase();
+                if (stockName.includes(searchQuery)) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>

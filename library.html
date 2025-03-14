@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
+    <style>
+
+        .barn-title {
+            font-family: 'Lobster', cursive; /* Rustic, hand-crafted feel */
+            font-size: 3em; /* Smaller title */
+            color: #c67c24; /* Warm, woody color */
+            text-align: center; /* Center the title */
+            text-transform: uppercase; /* Make title all caps for a bold effect */
+            padding: 20px;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3); /* Darker shadow for depth */
+            width: 80%; /* Adjust width to make it fit nicely */
+            margin: 50px auto; /* Center the title on the page */
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('library.png') no-repeat right 20%; /* 10% from the right edge */
+            background-position: top 50%; /* 20% from the top edge */
+            background-size: cover; /* Adjust the image size if needed */
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+
+        .book-container {
+            position: absolute;
+            top: 30%; /* Adjust this to change the top position */
+            left: 84%; /* Adjust this to change the left position */
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .book-image {
+            width: 150px;
+            height: 150px;
+        }
+
+        .book-text {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            color: white;
+            width: 80%;
+            height: 60%;
+            overflow: auto;
+            border-radius: 10px;
+        }
+
+        .report-modal h2 {
+            margin-top: 0;
+        }
+
+        .modal-content {
+            margin-top: 20px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Button for switching report style inside the modal */
+        .switch-report-btn {
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .switch-report-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1 class="barn-title">Barn</h1>
+
+    <!-- Book container with image and text -->
+    <div class="book-container" onclick="showReport()">
+        <img src="book.png" class="book-image" alt="Book">
+        <div class="book-text">March Monthly Report</div>
+    </div>
+
+    <!-- Modal for detailed report -->
+    <div id="reportModal" class="report-modal">
+        <span class="close-modal" onclick="closeModal()">X</span>
+        <h2>March Monthly Financial Investing Report</h2>
+        <div id="reportContent" class="modal-content">
+            <!-- Updated report content -->
+            <p><strong>Overview:</strong>Our portfolio also saw further growth in February, despite the challenging developments on the international markets. For example, the Greenhill portfolio rose by +0.16%, while the S&P 500, NASDAQ and MSCI World fell by -0.67%, -2.81% and -1.68% respectively. In contrast, the Belgian market, and by extension the European market, saw another rise this month of +3.43% and +4.18% respectively. The American market in particular has had a volatile month. The introduction of the announced import tariffs by President Donald Trump is causing uncertainty among investors. The fear of possible countermeasures from China and Europe has caused these investors to flee to “safer havens”. This caused a real wave of sales in the second half of February, which mainly affected the technology sector. For example, Alphabet fell by -15.06% and is therefore the biggest loser in our portfolio in February. Amazon also saw a decline of -10.72% and Tesla a decline of -23.62%. This also explains why the NASDAQ underperformed the S&P 500. BlackRock's IShares MSCI World also had a negative result in February. This is because, despite what the tracker's name suggests, this ETF has a very large exposure to the US market of 72.52%. February was also a bad month for Bitcoin as it saw a depreciation of -19.51%.</p>
+            <!-- Button to switch report type -->
+            <button class="switch-report-btn" onclick="getStorytellingReport()">Switch to Storytelling Report</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to show the report modal
+        function showReport() {
+            document.getElementById("reportModal").style.display = "block";
+        }
+
+        // Function to close the report modal
+        function closeModal() {
+            document.getElementById("reportModal").style.display = "none";
+        }
+
+        // Function to switch to storytelling report
+        function getStorytellingReport() {
+            // Get the original report content
+            var originalReport = document.getElementById("reportContent").innerText;
+
+            // Send the report to the Flask backend to generate the storytelling version
+            $.ajax({
+                url: 'http://127.0.0.1:5000/convert_to_storytelling',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ report_text: originalReport }), // Payload with report_text key
+                success: function(response) {
+                    document.getElementById("reportContent").innerHTML = `
+                        <h3>Storytelling Version:</h3>
+                        <p>${response.storytelling}</p>
+                    `;
+                },
+                error: function(error) {
+                    console.log("Error:", error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
